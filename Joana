@@ -1,0 +1,68 @@
+import pygame
+import numpy as np
+import random
+pygame.init()
+largura, altura = 800, 600
+ecra = pygame.display.set_mode((largura, altura))
+cores = [(0, 0, 0), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+colunas, linhas = 100, 75
+tamanho_celula = largura // colunas
+grelha = np.random.randint(0, len(cores), size=(linhas, colunas))
+def tem_vizinhos_vivos(grelha, l, c):
+    for dl in [-1, 0, 1]:
+        for dc in [-1, 0, 1]:
+            if dl == 0 and dc == 0:
+                continue
+            ll, cc = (l + dl) % linhas, (c + dc) % colunas
+            if grelha[ll][cc] > 0:
+                return True
+    return False
+def atualizar_grelha(grelha):
+    nova_grelha = grelha.copy()
+    for l in range(linhas):
+        for c in range(colunas):
+            num_vizinhos_vivos = 0
+            diversidade_genetica = {}
+            for dl in [-1, 0, 1]:
+                for dc in [-1, 0, 1]:
+                    if dl == 0 and dc == 0:
+                        continue
+                    ll, cc = (l + dl) % linhas, (c + dc) % colunas
+                    if grelha[ll][cc] > 0:
+                        num_vizinhos_vivos += 1
+                        cor_vizinho = grelha[ll][cc]
+                        if cor_vizinho in diversidade_genetica:
+                            diversidade_genetica[cor_vizinho] += 1
+                        else:
+                            diversidade_genetica[cor_vizinho] = 1
+            if grelha[l][c] > 0:
+                if 2 <= num_vizinhos_vivos <= 3:
+                    nova_grelha[l][c] = max(diversidade_genetica, key=diversidade_genetica.get)
+                else:
+                    nova_grelha[l][c] = 0
+            else:
+                if num_vizinhos_vivos == 3:
+                    nova_grelha[l][c] = max(diversidade_genetica, key=diversidade_genetica.get)
+            if random.random() < 0.01:
+                nova_grelha[l][c] = random.randint(1, len(cores)-1) if nova_grelha[l][c] > 0 else 0
+    for _ in range(5):
+        l_espontanea = random.randint(0, linhas-1)
+        c_espontanea = random.randint(0, colunas-1)
+        if tem_vizinhos_vivos(grelha, l_espontanea, c_espontanea):
+            nova_grelha[l_espontanea][c_espontanea] = random.randint(1, len(cores)-1)
+            break
+    return nova_grelha
+executando = True
+while executando:
+    ecra.fill((0, 0, 0))
+    for evento in pygame.event.get():
+        if evento.type == pygame.QUIT:
+            executando = False
+    for l in range(linhas):
+        for c in range(colunas):
+            cor = cores[grelha[l][c]]
+            pygame.draw.rect(ecra, cor, (c * tamanho_celula, l * tamanho_celula, tamanho_celula, tamanho_celula))
+    grelha = atualizar_grelha(grelha)
+    pygame.display.flip()
+    pygame.time.delay(100)
+pygame.quit()
