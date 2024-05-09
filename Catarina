@@ -1,0 +1,67 @@
+function Pendulo_duplo()
+    g = 9.81;  
+    L1 = 1.0;  
+    L2 = 1.0;
+    m1 = 6.0; 
+    m2 = 3.0;  
+    initial_thetas = 3*pi/5; 
+    initial_omegas = 0.0000:0.000001:0.000004;  
+    initial_conditions = [];
+    for i = 1:length(initial_omegas)
+        initial_conditions=[initial_conditions;initial_thetas, initial_omegas(i), initial_thetas, initial_omegas(i)];
+    end
+    tspan = [0 10]; 
+    figure;
+    axes;
+    hold on;
+    xlim([-3, 3]);
+    ylim([-3, 3]);
+    p = gobjects(length(initial_omegas), 1);
+    for k = 1:length(initial_omegas)
+        p(k) = plot(0, 0, 'o-', 'LineWidth', 2, 'MarkerSize', 10);
+    end
+    results = cell(length(initial_omegas), 1);
+    for k = 1:length(initial_omegas)
+        [T, Y] = ode45(@(t, y) pendulum(t, y, m1, m2, L1, L2, g), tspan, initial_conditions(k, :));
+        results{k} = {T, Y};
+    end
+    maxSteps = max(cellfun(@(c) size(c{1}, 1), results));
+    tic; 
+    for i = 1:maxSteps
+        elapsedTime = toc;
+        for k = 1:length(initial_omegas)
+            data = results{k};
+            T = data{1};
+            Y = data{2};
+            [~, idx] = min(abs(T - elapsedTime));
+            if idx <= size(T, 1)
+                theta1 = Y(idx, 1);
+                theta2 = Y(idx, 3);
+                x1 = L1 * sin(theta1);
+                y1 = -L1 * cos(theta1);
+                x2 = x1 + L2 * sin(theta2);
+                y2 = y1 - L2 * cos(theta2);
+                set(p(k), 'XData', [0, x1, x2]);
+                set(p(k), 'YData', [0, y1, y2]);
+            end
+        end
+        drawnow;
+        pause(0.06);
+    end
+    toc(tic);
+end
+function dy = pendulum(t, y, m1, m2, L1, L2, g)
+    theta1 = y(1);
+    omega1 = y(2);
+    theta2 = y(3);
+    omega2 = y(4);
+    dtheta1_dt = omega1;
+    dtheta2_dt = omega2;
+    delta = theta1 - theta2;
+    den1 = (m1 + m2) * L1 - m2 * L1 * cos(delta)^2;
+    den2 = (L2 / L1) * den1;
+    omega1_dot = (-g * (2 * m1 + m2) * sin(theta1) - m2 * g * sin(theta1 - 2 * theta2) - 2 * sin(delta) * m2 * (omega2^2 * L2 + omega1^2 * L1 * cos(delta))) / den1;
+    omega2_dot = (2 * sin(delta) * ((omega1^2 * L1 * (m1 + m2) + g * (m1 + m2) * cos(theta1) + omega2^2 * L2 * m2 * cos(delta)))) / den2;
+    dy = [dtheta1_dt; omega1_dot; dtheta2_dt; omega2_dot];
+end
+
