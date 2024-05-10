@@ -50,6 +50,9 @@ function Pendulo_duplo()
     end
     toc(tic);
 end
+
+
+
 function dy = pendulum(t, y, m1, m2, L1, L2, g)
     theta1 = y(1);
     omega1 = y(2);
