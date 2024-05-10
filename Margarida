@@ -14,6 +14,8 @@ function main()
 colors); 
  hold off; 
 end
+
+
 function draw_branch(pos, angle, branch_length, thickness, colors) 
  if branch_length < 15 
  leaf_color = colors{randi([4, 8])}; 
@@ -41,6 +43,9 @@ colors);
  draw_branch(new_pos, angle + turn_angle, new_length, 
 new_thickness, colors); 
 end
+
+
+
 function rgb = hex2rgb(hex) 
  hex = hex(2:end); 
  r = hex2dec(hex(1:2)) / 255; 
